@@ -1,0 +1,11 @@
+fastapi
+uvicorn
+sqlalchemy
+pytest
+pytest-asyncio
+pytest-cov
+pytest-mock
+pytest-postgresql
+python-dotenv
+psycopg
+psycopg2

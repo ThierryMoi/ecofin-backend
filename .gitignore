@@ -1,0 +1,15 @@
+# Fichiers et répertoires générés par Python
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+*.log
+*.sh
+
+.env
+.json
+.plist
+
+# Fichiers générés par l'environnement virtuel (venv)
+eda/
+mongodb_data/

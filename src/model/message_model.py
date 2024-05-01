@@ -8,7 +8,7 @@ Base = declarative_base()
 class Message(Base):
     __tablename__ = 'messages'
 
-    user_id = Column(String, primary_key=True)
+    message_id = Column(String, primary_key=True)
     discussion_id = Column(String)
     question = Column(String)
     reponse = Column(String, unique=True)
@@ -17,10 +17,11 @@ class Message(Base):
     updated_at = Column(DateTime, onupdate=datetime.now)
     deleted_at = Column(DateTime, nullable=True)
 
-class UserResponse(BaseModel):
-    user_id: str
-    nom_prenom: str
-    email: str
+class MessageResponse(BaseModel):
+    message_id: str
+    discussion_id: str
+    question: str
+    response: str
     created_at: datetime
     updated_at: datetime
     deleted_at: datetime

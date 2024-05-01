@@ -1,7 +1,7 @@
 from fastapi.middleware.cors import CORSMiddleware
 
 from configuration.properties import app,PORT
-from controller.user_controller import *
+# from controller.user_controller import *
 import uvicorn
 from prometheus_fastapi_instrumentator import Instrumentator
 from fastapi import FastAPI

@@ -1,5 +1,5 @@
 from fastapi import APIRouter, Depends, HTTPException
-from typing import List
+from typing import List,Union
 from model.user_model import User,UserResponse
 from configuration.properties import app
 
@@ -17,7 +17,7 @@ user_service = UserService(user_repository)
 router = APIRouter()
 
 
-@router.post("/users/", response_model=UserResponse)
+@router.post("/users/", response_model=Union[dict,None])
 def create_user(user: UserResponse):
     created_user = user_service.create_user(user.dict())
     return created_user

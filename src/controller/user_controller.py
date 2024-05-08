@@ -1,50 +1,48 @@
 from fastapi import APIRouter, Depends, HTTPException
 from typing import List,Union
-from model.user_model import User,UserResponse
+from model.user_model import UserRead,UserBase,UserUpdate
 from configuration.properties import app
 
-from configuration.posgres import CONNECTION_STRING
-
-
-
+from configuration.mongo import USER_COLLECTION
 from service.user_service import UserService
+
 from repository.user_repository import UserRepository
 
 
-user_repository = UserRepository(CONNECTION_STRING)
+user_repository = UserRepository(USER_COLLECTION)
 user_service = UserService(user_repository)
 
-router = APIRouter()
 
+router = APIRouter(prefix='/users',tags=['users'])
 
-@router.post("/users/", response_model=Union[dict,None])
-def create_user(user: UserResponse):
-    created_user = user_service.create_user(user.dict())
-    return created_user
+@router.post("/add", response_model=UserRead)
+def create_user(user: UserBase):
+    user_id = user_service.create_user(user.dict())
+    return {"user_id": user_id, **user.dict()}
 
-@router.get("/users/{user_id}", response_model=UserResponse)
-def get_user_by_id(user_id: str):
+@router.get("/get-one", response_model=UserRead)
+def get_user(user_id: str):
     user = user_service.get_user_by_id(user_id)
-    if user is None:
-        raise HTTPException(status_code=404, detail="Utilisateur non trouvé")
-    return user
+    if user:
+        return user
+    raise HTTPException(status_code=404, detail="User not found")
 
-@router.get("/users/", response_model=List[UserResponse])
+@router.get("/all", response_model=List[UserRead])
 def get_all_users():
     return user_service.get_all_users()
 
-@router.put("/users/{user_id}", response_model=UserResponse)
-def update_user( user_id: str, user: UserResponse):
-    updated_user = user_service.update_user(user_id, user)
-    if updated_user is None:
-        raise HTTPException(status_code=404, detail="Utilisateur non trouvé")
-    return updated_user
+@router.put("/update", response_model=bool)
+def update_user(user_id: str, user_update: UserUpdate):
+    if user_service.get_user_by_id(user_id):
+        return user_service.update_user(user_id, user_update.dict())
+    raise HTTPException(status_code=404, detail="User not found")
 
-@router.delete("/users/{user_id}")
+@router.delete("/delete", response_model=bool)
 def delete_user(user_id: str):
-    deleted_user = user_service.delete_user(user_id)
-    if deleted_user is None:
-        raise HTTPException(status_code=404, detail="Utilisateur non trouvé")
-    return {"message": "Utilisateur supprimé avec succès"}
+    if user_service.get_user_by_id(user_id):
+        return user_service.delete_user(user_id)
+    raise HTTPException(status_code=404, detail="User not found")
+
+
 
 app.include_router(router)

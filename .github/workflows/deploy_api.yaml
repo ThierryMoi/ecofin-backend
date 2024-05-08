@@ -1,0 +1,59 @@
+name: CI/CD Pipeline
+
+on:
+  push:
+    branches:
+      - dev
+
+jobs:
+  push_to_Docker_Hub_ecofin_api_backend:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repo
+        uses: actions/checkout@v2
+
+      - name: Set up QEMU
+        uses: docker/setup-qemu-action@v1
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v1
+
+      - name: Login to DockerHub
+        uses: docker/login-action@v1
+        with:
+          username: ${{ secrets.DOCKER_HUB_USERNAME }}
+          password: ${{ secrets.DOCKER_HUB_PASSWORD }}
+      
+      - name: Build and push 
+        uses: docker/build-push-action@v2
+        with:
+          context: .
+          file: dockerfile.yml
+          push: true
+          tags: ${{ secrets.DOCKER_HUB_USERNAME }}/${{ secrets.DOCKER_IMAGE_NAME_DEV }}:latest
+
+
+  deploy:
+    runs-on: ubuntu-latest
+
+    needs: push_to_Docker_Hub_ecofin_api_backend
+
+    steps:
+      - name: Install SSH client
+        run: sudo apt-get install -y openssh-client
+      - name: Create SSH directory
+        run: mkdir -p /home/runner/.ssh
+
+      - name: Create SSH key
+        run: touch /home/runner/.ssh/id_rsa
+      - name: Deploy to VPS
+        run: |
+          echo "$SSH_PRIVATE_KEY" > ~/.ssh/id_rsa
+          chmod 600 ~/.ssh/id_rsa
+          ssh-keyscan -H ${{ secrets.VPS_IP }} >> ~/.ssh/known_hosts                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                   
+          ssh ${{ secrets.VPS_USERNAME }}@${{ secrets.VPS_IP }} 'cd ecofin-stack/api && docker stop ecofin_api_container_dev && docker rm ecofin_api_container_dev'
+          ssh ${{ secrets.VPS_USERNAME }}@${{ secrets.VPS_IP }} 'docker rmi noname1705/ecofin_api_dev:latest'
+          ssh ${{ secrets.VPS_USERNAME }}@${{ secrets.VPS_IP }} 'cd ecofin-stack/api && docker-compose -f docker-compose.yaml pull'
+          ssh ${{ secrets.VPS_USERNAME }}@${{ secrets.VPS_IP }} 'cd ecofin-stack/api && docker-compose --env-file .env -f docker-compose.yaml up -d'
+        env:
+          SSH_PRIVATE_KEY: ${{ secrets.SSH_PRIVATE_KEY }}

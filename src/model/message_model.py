@@ -1,29 +1,35 @@
-from sqlalchemy import create_engine, Column, String, DateTime
-from sqlalchemy.ext.declarative import declarative_base
+
+
+from pydantic import BaseModel,EmailStr,Field
+from typing import Optional,List
+from enum import Enum
 from datetime import datetime
-from pydantic import BaseModel
-from configuration.posgres import engine
-Base = declarative_base()
+from bson import ObjectId
 
-class Message(Base):
-    __tablename__ = 'messages'
 
-    message_id = Column(String, primary_key=True)
-    discussion_id = Column(String)
-    question = Column(String)
-    reponse = Column(String, unique=True)
-    appreciation = Column(String, unique=True)
-    created_at = Column(DateTime, default=datetime.now)
-    updated_at = Column(DateTime, onupdate=datetime.now)
-    deleted_at = Column(DateTime, nullable=True)
 
-class MessageResponse(BaseModel):
-    message_id: str
+
+class MessageBase(BaseModel):
     discussion_id: str
     question: str
     response: str
-    created_at: datetime
-    updated_at: datetime
-    deleted_at: datetime
+    user_id: str
+
+
+
+
+
+class MessageRead(MessageBase):
+    message_id: str = Field(..., alias="_id")
+    appreciation: str
+    response: str
+    created_at: Optional[datetime]
+    updated_at: Optional[datetime]
+    deleted_at: Optional[datetime]
+
+
+class MessageResponse(MessageBase):
+    message_id: str
+    response: str
+    created_at: Optional[datetime]
     
-Base.metadata.create_all(engine)

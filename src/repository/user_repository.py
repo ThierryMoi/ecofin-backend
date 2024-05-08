@@ -1,73 +1,36 @@
-from sqlalchemy.orm import sessionmaker
-from contextlib import contextmanager
-from model.user_model import User
-from typing import List
-from sqlalchemy import create_engine
-from datetime import datetime  # Ajout de l'import pour datetime
-
-from sqlalchemy.ext.declarative import declarative_base
-Base = declarative_base()
+from pymongo import MongoClient
+from bson import ObjectId
+from typing import Optional, List
+from datetime import datetime
+from model.user_model import UserRead,UserBase,UserUpdate
 
 class UserRepository:
-    def __init__(self, connection_string: str):
-        self.engine = create_engine(connection_string)
-        Base.metadata.create_all(self.engine)
-        self.Session = sessionmaker(bind=self.engine)
+    def __init__(self, collection):
+        self.collection = collection
 
-    @contextmanager
-    def session_scope(self):
-        session = self.Session()
-        try:
-            yield session
-            session.commit()
-        except IntegrityError as e:
-            session.rollback()
-            raise HTTPException(status_code=400, detail=str(e))
-        except Exception as e:
-            session.rollback()
-            raise e
-        finally:
-            session.close()
-            
-    def create_user(self, user_data: dict):
-        with self.session_scope() as session:
-            try:
-                user = User(**user_data)
-                session.add(user)
-                session.flush()  # Pour déclencher l'erreur de clé unique ici s'il y en a
-                return user
-            except Exception as e:
-                session.rollback()
-                raise e
+    def create(self, user_data: dict) -> str:
+        if self.collection.find_one({"$or": [{"user_id": user_data["user_id"]}, {"deleted_at": {"$exists": True}}]}):
+            raise ValueError("User with the same user_id or email already exists")
+        user_data['created_at'] = datetime.utcnow()
+        result = self.collection.insert_one(user_data)
+        return str(result.inserted_id)
 
-    def get_user_by_id(self, user_id: str) -> User:
-        with self.session_scope() as session:
-            return session.query(User).filter_by(user_id=user_id).first()
+    def find_by_id(self, user_id: str) -> Optional[dict]:
+        return self.collection.find_one({"user_id": user_id, "deleted_at": {"$exists": False}})
 
-    def update_user(self, user_id: str, new_data: dict) -> User:
-        with self.session_scope() as session:
-            user = session.query(User).filter_by(user_id=user_id).first()
-            if user:
-                try:
-                    for key, value in new_data.items():
-                        setattr(user, key, value)
-                    session.flush()  # Pour déclencher l'erreur de clé unique ici s'il y en a
-                    return user
-                except Exception as e:
-                    session.rollback()
-                    raise e
+    def find_by_email(self, email: str) -> Optional[dict]:
+        return self.collection.find_one({"email": email, "deleted_at": {"$exists": False}})
 
-    def delete_user(self, user_id: str) -> None:
-        with self.session_scope() as session:
-            user = session.query(User).filter_by(user_id=user_id).first()
-            if user:
-                try:
-                    user.deleted_at = datetime.now()
-                    session.flush()  # Pour déclencher l'erreur de clé unique ici s'il y en a
-                except Exception as e:
-                    session.rollback()
-                    raise e
+    def find_all(self) -> List[dict]:
+        for e in self.collection.find({"deleted_at": {"$exists": False}}):
+            print(UserRead(**e))
+        return list(self.collection.find({"deleted_at": {"$exists": False}}))
 
-    def get_all_users(self) -> List[User]:
-        with self.session_scope() as session:
-            return session.query(User).filter(User.deleted_at == None).all()
+    def update(self, user_id: str, update_data: dict) -> bool:
+        update_data['updated_at'] = datetime.utcnow()
+        result = self.collection.update_one({"user_id": user_id, "deleted_at": {"$exists": False}}, {"$set": update_data})
+        return result.modified_count > 0
+
+    def delete(self, user_id: str) -> bool:
+        result = self.collection.update_one({"user_id": user_id, "deleted_at": {"$exists": False}}, {"$set": {"deleted_at": datetime.utcnow()}})
+        return result.modified_count > 0

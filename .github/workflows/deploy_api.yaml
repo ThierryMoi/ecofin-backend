@@ -3,7 +3,7 @@ name: CI/CD Pipeline
 on:
   push:
     branches:
-      - dev
+      - dev-thierry
 
 jobs:
   push_to_Docker_Hub_ecofin_api_backend:

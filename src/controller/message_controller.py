@@ -1,5 +1,5 @@
 from fastapi import APIRouter, HTTPException
-from model.message_model import MessageBase, MessageRead, MessageResponse
+from model.message_model import MessageBase, MessageRead, MessageResponse,MessageReadPaginer
 
 from configuration.properties import app
 
@@ -29,7 +29,7 @@ discussion_service = DiscussionService(discussion_repository)
 
 message_repository = MessageRepository(MESSAGE_COLLECTION)
 message_service = MessageService(message_repository)
-router = APIRouter(prefix='/messages')
+router = APIRouter(prefix='/messages',tags=['messages'])
 
 
 @router.get("/get-one", response_model=MessageRead)
@@ -39,14 +39,12 @@ def read_message(message_id: str):
         return message
     raise HTTPException(status_code=404, detail="Message not found")
 
-@router.get("all-message-by-discusion-user")
+
+
+@router.get("all-message-by-discusion-user",response_model=MessageReadPaginer)
 def get_message_user_discussion(user_id: str, discussion_id: str,page :int , page_size:int ):
-    if message_service.get_message_by_id(message_id):
-        if message_service.respond_to_message(message_id, response.response):
-            return True
-        else:
-            raise HTTPException(status_code=500, detail="Failed to respond to message")
-    raise HTTPException(status_code=404, detail="Message not found")
+    
+    return message_service.get_all_message_by_user_discussion(user_id, discussion_id, page, page_size)
 
 
 @router.websocket("/chat")

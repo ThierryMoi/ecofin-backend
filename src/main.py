@@ -1,7 +1,7 @@
 from fastapi.middleware.cors import CORSMiddleware
 
 from configuration.properties import app,PORT
-from controller.user_controller import *
+#from controller.user_controller import *
 from controller.message_controller import *
 from controller.discussion_controller import *
 

@@ -12,6 +12,18 @@ class MessageService:
     def create_message(self, message: MessageBase) -> str:
         return self.repo.create(message)
 
+    def get_all_message_by_user_discussion(self,user_id ,discussion_id,page,page_size) -> dict:
+        dc={}
+        lst , nb = self.repo.find_all_by_user_discussion(user_id, discussion_id, page,page_size)
+        dc["message"]=lst
+        dc["page_size"]=page_size
+        dc["page"]=page
+        dc["nb_pages"]=nb
+        print(dc)
+        return dc
+        
+ 
+
     def get_message_by_id(self, message_id: str) -> MessageRead:
         return self.repo.find_by_id(message_id)
 

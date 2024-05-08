@@ -21,7 +21,7 @@ class DiscussionRepository:
     def find_by_user_id(self, user_id: str) -> List[dict]:
         return list(self.collection.find({"user_id": user_id, "deleted_at": {"$exists": False}}))
 
-    def find_all_by_user(self,user_id , page, page_size) -> List[dict]:
+    def find_all_by_user(self,user_id , page, page_size) :
         if page==0:
             skip=0
         else:

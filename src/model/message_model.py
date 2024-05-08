@@ -20,12 +20,18 @@ class MessageBase(BaseModel):
 
 
 class MessageRead(MessageBase):
-    message_id: str = Field(..., alias="_id")
-    appreciation: str
-    response: str
+    message_id: str 
+    appreciation: Optional[str]
     created_at: Optional[datetime]
     updated_at: Optional[datetime]
     deleted_at: Optional[datetime]
+
+
+class MessageReadPaginer(BaseModel):
+    message: Optional[List[MessageRead]]
+    page_size:int
+    page:int
+    nb_pages: Optional[int]
 
 
 class MessageResponse(MessageBase):

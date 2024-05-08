@@ -60,5 +60,5 @@ uvicorn==0.15.0
 pybase64
 prometheus_fastapi_instrumentator
 websockets==12.0
-
+tiktoken
 openai

@@ -27,10 +27,10 @@ index_params = {
 ###########################################################################################""
 COLLECTION_ARTICLE = Collection(name=COLLECTION_ARTICLE_NAME)
 
-COLLECTION_ARTICLE.create_index("paragraphe_embedding", index_params)
-COLLECTION_ARTICLE.create_index("title_embedding", index_params)
-COLLECTION_ARTICLE.create_index("time_embedding", index_params)
-COLLECTION_ARTICLE.load()
+#COLLECTION_ARTICLE.create_index("paragraphe_embedding", index_params)
+#COLLECTION_ARTICLE.create_index("title_embedding", index_params)
+#COLLECTION_ARTICLE.create_index("time_embedding", index_params)
+#COLLECTION_ARTICLE.load()
 
 ########################################################################################################################
 
@@ -38,8 +38,8 @@ COLLECTION_ARTICLE.load()
 
 COLLECTION_RAPPORT = Collection(name=COLLECTION_RAPPORT_NAME)
 
-COLLECTION_RAPPORT.create_index("paragraphe_embedding", index_params)
-COLLECTION_RAPPORT.create_index("titre_embedding", index_params)
-COLLECTION_RAPPORT.create_index("description_embedding", index_params)
-COLLECTION_RAPPORT.create_index("dateparution_embedding", index_params)
-COLLECTION_RAPPORT.load()
+#COLLECTION_RAPPORT.create_index("paragraphe_embedding", index_params)
+#COLLECTION_RAPPORT.create_index("titre_embedding", index_params)
+#COLLECTION_RAPPORT.create_index("description_embedding", index_params)
+#COLLECTION_RAPPORT.create_index("dateparution_embedding", index_params)
+#COLLECTION_RAPPORT.load()

@@ -15,5 +15,6 @@ logging.basicConfig(
 logger = logging.getLogger(__name__)
 PORT = os.environ.get("PORT", 8000)
 
+
 app = FastAPI()
 

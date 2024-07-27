@@ -27,6 +27,7 @@ def create_discussion(discussion: DiscussionBase , Authorize: AuthJWT = Depends(
     discussion_id = discussion_service.create_discussion(discussion.dict())
     return {"discussion_id": discussion_id}
 
+
 @router.get("/get-one", response_model=DiscussionRead)
 def get_discussion(discussion_id: str, Authorize: AuthJWT = Depends()):
     
@@ -45,6 +46,8 @@ def get_all_discussions(page: int, page_size: int, Authorize: AuthJWT = Depends(
     #user_id = Authorize.get_jwt_subject()
     return discussion_service.get_all_discussions(page, page_size)
 
+
+16
 
 @router.get("/all-by-user", response_model=DiscussionReadPaginer)
 def get_all_discussions_by_user_controller(page: int, page_size: int, user_id: str, Authorize: AuthJWT = Depends()):

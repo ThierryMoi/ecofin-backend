@@ -368,7 +368,7 @@ class MessageService:
             list_rap = [
                 f"{'année: ' + article['annee']}\n"
                 f"{'pays: ' + article['pays']}\n"
-                f"{'classement de l\'indice DH: ' + article['dhIndexRank']}\n"
+                f"{'classement de lindice DH: ' + article['dhIndexRank']}\n"
                 f"{'PIB (USD): ' + article['pibUsd']}\n"
                 f"{'population: ' + article['population']}\n"
                 f"{'PIB par habitant (USD): ' + article['pibPerHabitationUsd']}\n"
@@ -380,7 +380,7 @@ class MessageService:
                 f"{'solde courant local: ' + article['currentBalanceLocal']}\n"
                 f"{'taux de change: ' + article['exchangeRate']}\n"
                 f"{'solde courant (USD): ' + article['currentBalanceUsd']}\n"
-                f"{'classement de l\'indice de transparence: ' + article['transparencyIndexRank']}\n"
+                f"{'classement de lindice de transparence: ' + article['transparencyIndexRank']}\n"
                 f"{'écart IDH/RNB par habitant: ' + article['ecartIdhRnbHab']}\n"
                 f"{'monnaie locale: ' + article['monaieLocal']}\n\n"
                 for index, article in enumerate(rap)

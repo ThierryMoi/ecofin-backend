@@ -16,8 +16,6 @@ URL_1024=os.environ.get("URL_1024")
 
 connections.connect(alias="defaultdev", host=MILVUS_HOST_DEV, port=MILVUS_PORT_DEV)
 
-
-
 index_params = {
     "metric_type": "IP",
     "index_type": "IVF_FLAT",
@@ -25,7 +23,7 @@ index_params = {
 }
 
 ###########################################################################################""
-COLLECTION_ARTICLE_DEV = Collection(name=COLLECTION_ARTICLE_NAME_DEV)
+COLLECTION_ARTICLE_DEV = Collection(name=COLLECTION_ARTICLE_NAME_DEV,using='defaultdev')
 
 COLLECTION_ARTICLE_DEV.create_index("paragraphe_embedding", index_params)
 COLLECTION_ARTICLE_DEV.create_index("title_embedding", index_params)

@@ -3,8 +3,8 @@ from model.message_model import MessageBase, MessageRead, MessageResponse
 from repository.message_repository import MessageRepository
 from pymilvus import AnnSearchRequest,WeightedRanker
 from utils.requests import embedding_multilangue
-from configuration.milvus import NB_RAPPORT, NB_ART,COLLECTION_ARTICLE_INDICATEUR, COLLECTION_ARTICLE_TRANSACTION,COLLECTION_RAPPORT, COLLECTION_ARTICLE,URL_1024,VOISIN ,COLLECTION_ARTICLE_INVESTIR
-
+from configuration.milvus import NB_RAPPORT, NB_ART,COLLECTION_ARTICLE_INDICATEUR, COLLECTION_ARTICLE_TRANSACTION,COLLECTION_RAPPORT,URL_1024,VOISIN ,COLLECTION_ARTICLE_INVESTIR
+from configuration.milvus_dev import COLLECTION_ARTICLE_DEV
 class MessageService:
     def __init__(self,message_repository):
         self.repo =message_repository

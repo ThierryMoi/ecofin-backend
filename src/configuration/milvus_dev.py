@@ -14,7 +14,7 @@ NB_RAPPORT=int(os.environ.get("NB_RAPPORT"))
 URL_1024=os.environ.get("URL_1024")
 
 
-connections.connect(alias="default", host=MILVUS_HOST_DEV, port=MILVUS_PORT_DEV)
+connections.connect(alias="defaultdev", host=MILVUS_HOST_DEV, port=MILVUS_PORT_DEV)
 
 
 

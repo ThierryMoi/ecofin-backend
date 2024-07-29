@@ -265,7 +265,7 @@ class MessageService:
         question_embed= eval(embedding_multilangue(question,URL_1024))
         tmp_embed= eval(embedding_multilangue(val,URL_1024))
 
-        reqs = self.config_multi_simarl_investir(question_embed,tmp_embed)
+        reqs = self.config_multi_simarl_indicateur(question_embed,tmp_embed)
         rerank = WeightedRanker(0.5,0.5)
         
         res = COLLECTION_ARTICLE_INDICATEUR.hybrid_search(
@@ -284,7 +284,7 @@ class MessageService:
         question_embed= eval(embedding_multilangue(question,URL_1024))
         tmp_embed= eval(embedding_multilangue(val,URL_1024))
 
-        reqs = self.config_multi_simarl_investir(question_embed,tmp_embed)
+        reqs = self.config_multi_simarl_transaction(question_embed,tmp_embed)
         rerank = WeightedRanker(0.4,0.2,0.4)
         
         res = COLLECTION_ARTICLE_TRANSACTION.hybrid_search(

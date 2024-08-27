@@ -320,6 +320,7 @@ class MessageService:
 
     
     def consolidation_context(self,question,val,base):
+        print(base)
         list_art=[]
         list_rap=[]
         context_consoliders=[]

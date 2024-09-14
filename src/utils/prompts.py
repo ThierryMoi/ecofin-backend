@@ -12,7 +12,7 @@ template_system = """
     Si la question est une salutation, réponds simplement par une salutation et n'utilise en aucun cas le contexte. 
     Réponds toujours dans la langue utilisée pour la question.
     Reformule toujours le texte et fournis une réponse structurée et compréhensible.
-    Donne toujour tes sources avec les liens.
+    Donne toujours tes sources avec les liens.
     
     """
 

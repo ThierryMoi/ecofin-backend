@@ -3,6 +3,8 @@ from model.message_model import MessageBase, MessageRead, MessageResponse
 from repository.message_repository import MessageRepository
 from pymilvus import AnnSearchRequest, WeightedRanker
 from utils.requests import embedding_multilangue
+from utils.date_search import extract_year_with_context
+
 from configuration.milvus import (
     NB_RAPPORT, NB_ART, COLLECTION_ARTICLE_INDICATEUR, COLLECTION_ARTICLE_TRANSACTION,
     COLLECTION_RAPPORT, URL_1024, VOISIN, COLLECTION_ARTICLE_INVESTIR
@@ -103,25 +105,25 @@ class MessageService:
 
     def consolidation_context(self, question, val, base):
         consolidated_contexts = []
-
+        annee= extract_year_with_context(question)
         if "article" in base:
             articles = self.similar_documents(
                 question, val, "article", ["content", "numeros_paragraphe", "time_published", "pub_title", "authors"],
-                COLLECTION_ARTICLE_DEV, (0.4, 0.2, 0.4), NB_ART
+                COLLECTION_ARTICLE_DEV, (0.4, 0.2, 0.4), NB_ART,annee
             )
             consolidated_contexts.append({"article": "\n\n".join([f"{article['hit']}\n" for article in articles])})
 
         if "rapport" in base:
             rapports = self.similar_documents(
                 question, val, "rapport", ["content", "numeros_paragraphe", "dateparution", "titre", "description"],
-                COLLECTION_RAPPORT, (0.5, 0.2, 0.2, 0.1), NB_RAPPORT
+                COLLECTION_RAPPORT, (0.5, 0.2, 0.2, 0.1), NB_RAPPORT,annee
             )
             consolidated_contexts.append({"rapport": "\n\n".join([f"{rap['hit']}\n" for rap in rapports])})
 
         if "investir" in base:
             investir_docs = self.similar_documents(
                 question, val, "investir", ["content", "numeros_paragraphe", "pub_title", "authors"],
-                COLLECTION_ARTICLE_INVESTIR, (0.6, 0.4), NB_ART
+                COLLECTION_ARTICLE_INVESTIR, (0.6, 0.4), NB_ART,annee
             )
             consolidated_contexts.append({"investir": "\n\n".join([f"{doc['hit']}\n" for doc in investir_docs])})
 
@@ -131,7 +133,7 @@ class MessageService:
                     "annee", "pays", "dhIndexRank", "pibUsd", "population", "pibPerHabitationUsd", "externalDebtUsd", 
                     "inflation", "goodsAndServicesImportUsd", "goodsAndServicesExportUsd"
                 ],
-                COLLECTION_ARTICLE_INDICATEUR, (0.5, 0.5), NB_ART
+                COLLECTION_ARTICLE_INDICATEUR, (0.5, 0.5), NB_ART,annee
             )
             consolidated_contexts.append({"indicateur": "\n\n".join([f"{doc['hit']}\n" for doc in indicateur_docs])})
 
@@ -142,7 +144,7 @@ class MessageService:
                     "investisseurs", "beneficiares", "paysInvestisseurs", "paysBeneficiares", "valeurTotal", 
                     "nombreBeneficaire"
                 ],
-                COLLECTION_ARTICLE_TRANSACTION, (0.4, 0.2, 0.4), NB_ART
+                COLLECTION_ARTICLE_TRANSACTION, (0.4, 0.2, 0.4), NB_ART,annee
             )
             consolidated_contexts.append({"transaction": "\n\n".join([f"{doc['hit']}\n" for doc in transaction_docs])})
 

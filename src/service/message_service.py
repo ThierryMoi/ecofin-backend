@@ -92,7 +92,7 @@ class MessageService:
             )
             for hit in res[0][:3]:
                 entities.append({"partition": partition, "distance": hit.distance, "hit": hit.entity.to_dict()['entity']})
-
+                #print(hit.entity.to_dict())
         return entities
 
     def rerank(self, COHERE_API_KEY, query, documents):
@@ -105,39 +105,86 @@ class MessageService:
 
     def consolidation_context(self, question, val, base):
         consolidated_contexts = []
-        annee= extract_year_with_context(question)
+        annee= extract_year_with_context(question)            
         if "article" in base:
-            articles = self.similar_documents(
+            art=self.similar_documents(
                 question, val, "article", ["content", "numeros_paragraphe", "time_published", "pub_title", "authors"],
                 COLLECTION_ARTICLE_DEV, (0.4, 0.2, 0.4), NB_ART,annee
             )
-            consolidated_contexts.append({"article": "\n\n".join([f"{article['hit']}\n" for article in articles])})
+            list_art=[
+            f"{'content chunk : ' + article['hit']['content']}\n"
+            f"{'numeros du paragraphe: ' + article['hit']['numeros_paragraphe']}\n"
+            f"{'periode du context: ' + article['hit']['time_published']}\n"
+            f"{'titre de larticle: ' + article['hit']['pub_title']}\n"
+            f"{'authors:' + article['hit']['authors']}\n\n"
+            for index, article in enumerate(art)]
+            consolidated_contexts.append({"article":"\n\n".join(list_art)})
+                        
+      
         if "rapport" in base:
-            rapports = self.similar_documents(
+            rap=self.similar_documents(
                 question, val, "rapport", ["content", "numeros_paragraphe", "dateparution", "titre", "description"],
                 COLLECTION_RAPPORT, (0.5, 0.2, 0.2, 0.1), NB_RAPPORT,annee
             )
-            consolidated_contexts.append({"rapport": "\n\n".join([f"{rap['hit']}\n" for rap in rapports])})
+            list_rap=[
+            f"{'content chunk article: ' + article['hit']['content']}\n"
+            f"{'numeros du chunck: ' + article['hit']['numeros_paragraphe']}\n"
+            f"{'periode du context du rapport: ' + article['dateparution']}\n"
+            f"{'titre du rapport: ' + article['hit']['titre']}\n"
+            f"{'description:' + article['hit']['description']}\n\n"
+            for index, article in enumerate(rap)]
+            consolidated_contexts.append({"rapport":"\n\n".join(list_rap)})
+            
 
-        if "investir" in base:
-            investir_docs = self.similar_documents(
+        if "investir_cameroun" in base:
+            rap = self.similar_documents(
                 question, val, "investir", ["content", "numeros_paragraphe", "pub_title", "authors"],
                 COLLECTION_ARTICLE_INVESTIR, (0.6, 0.4), NB_ART,annee
             )
-            consolidated_contexts.append({"investir": "\n\n".join([f"{doc['hit']}\n" for doc in investir_docs])})
+            list_rap = [
+                f"{'contenu: ' + article['content']}\n"
+                f"{'numéros de paragraphe: ' + article['numeros_paragraphe']}\n"
+                f"{'titre de la publication: ' + article['pub_title']}\n"
+                f"{'auteurs: ' + article['authors']}\n\n"
+                for index, article in enumerate(rap)
+            ]
+            consolidated_contexts.append({"investir_cameroun":"\n\n".join(list_rap)})
 
+       
         if "indicateur" in base:
-            indicateur_docs = self.similar_documents(
+            rap = self.similar_documents(
                 question, val, "indicateur", [
                     "annee", "pays", "dhIndexRank", "pibUsd", "population", "pibPerHabitationUsd", "externalDebtUsd", 
                     "inflation", "goodsAndServicesImportUsd", "goodsAndServicesExportUsd"
                 ],
                 COLLECTION_ARTICLE_INDICATEUR, (0.5, 0.5), NB_ART,annee
             )
-            consolidated_contexts.append({"indicateur": "\n\n".join([f"{doc['hit']}\n" for doc in indicateur_docs])})
+            list_rap = [
+                f"{'année: ' + article['annee']}\n"
+                f"{'pays: ' + article['pays']}\n"
+                f"{'classement de lindice DH: ' + article['dhIndexRank']}\n"
+                f"{'PIB (USD): ' + article['pibUsd']}\n"
+                f"{'population: ' + article['population']}\n"
+                f"{'PIB par habitant (USD): ' + article['pibPerHabitationUsd']}\n"
+                f"{'dette extérieure (USD): ' + article['externalDebtUsd']}\n"
+                f"{'inflation: ' + article['inflation']}\n"
+                f"{'importations de biens et services (USD): ' + article['goodsAndServicesImportUsd']}\n"
+                f"{'exportations de biens et services (USD): ' + article['goodsAndServicesExportUsd']}\n"
+                f"{'réserve de change (USD): ' + article['foreignExchangeReserveUsd']}\n"
+                f"{'solde courant local: ' + article['currentBalanceLocal']}\n"
+                f"{'taux de change: ' + article['exchangeRate']}\n"
+                f"{'solde courant (USD): ' + article['currentBalanceUsd']}\n"
+                f"{'classement de lindice de transparence: ' + article['transparencyIndexRank']}\n"
+                f"{'écart IDH/RNB par habitant: ' + article['ecartIdhRnbHab']}\n"
+                f"{'monnaie locale: ' + article['monaieLocal']}\n\n"
+                for index, article in enumerate(rap)
+            ]
+            consolidated_contexts.append({"indicateur":"\n\n".join(list_rap)})
+
+
 
         if "transaction" in base:
-            transaction_docs = self.similar_documents(
+            rap = self.similar_documents(
                 question, val, "transaction", [
                     "typeTransaction", "date", "natureTransaction", "secteursTransaction", "description", 
                     "investisseurs", "beneficiares", "paysInvestisseurs", "paysBeneficiares", "valeurTotal", 
@@ -145,6 +192,20 @@ class MessageService:
                 ],
                 COLLECTION_ARTICLE_TRANSACTION, (0.4, 0.2, 0.4), NB_ART,annee
             )
-            consolidated_contexts.append({"transaction": "\n\n".join([f"{doc['hit']}\n" for doc in transaction_docs])})
-
+            list_rap = [
+                f"{'type de transaction: ' + article['hit']['typeTransaction']}\n"
+                f"{'date: ' + article['hit']['date']}\n"
+                f"{'nature de la transaction: ' + article['hit']['natureTransaction']}\n"
+                f"{'secteurs de la transaction: ' + article['hit']['secteursTransaction']}\n"
+                f"{'description: ' + article['hit']['description']}\n"
+                f"{'investisseurs: ' + article['hit']['investisseurs']}\n"
+                f"{'bénéficiaires: ' + article['hit']['beneficiares']}\n"
+                f"{'pays des investisseurs: ' + article['hit']['paysInvestisseurs']}\n"
+                f"{'pays des bénéficiaires: ' + article['hit']['paysBeneficiares']}\n"
+                f"{'valeur totale: ' + article['hit']['valeurTotal']}\n"
+                f"{'nombre de bénéficiaires: ' + article['hit']['nombreBeneficaire']}\n\n"
+                for index, article in enumerate(rap)
+            ]
+            consolidated_contexts.append({"transaction":"\n\n".join(list_rap)})
+            
         return consolidated_contexts

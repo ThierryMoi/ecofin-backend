@@ -26,15 +26,15 @@ def human_prompt(question, context):
 
     for item in context:
         if item.get("article"):
-            context_article =item.get("type")
+            context_article =item.get("article","")
         elif item.get("rapport"):
-            context_rapport= item.get("rapport")
+            context_rapport= item.get("rapport","")
         elif item.get("indicateur"):
-            context_indicateur = item.get("indicateur")
+            context_indicateur = item.get("indicateur","")
         elif item.get("transaction"):
-            context_transaction  = item.get("transaction")
+            context_transaction  = item.get("transaction","")
         elif item.get("investir_cameroun") :
-            context_investir_cameroun = item.get("investir_cameroun")
+            context_investir_cameroun = item.get("investir_cameroun","")
     
     template_user = f"""
         Réponds uniquement à mes questions sur le domaine financier et économique en Afrique.

@@ -88,7 +88,7 @@ async def chat_controller(ws: WebSocket,token:str):
             raise HTTPException(status_code=404, detail="Discussion not found")
 
         completion = CLIENT_OPENAI.chat.completions.create(
-            model="gpt-3.5-turbo",
+            model="gpt-4o",
             stream=True,
             messages=[
                 {"role": "system", "content": template_system},

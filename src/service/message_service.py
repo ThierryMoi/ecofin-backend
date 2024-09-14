@@ -112,7 +112,6 @@ class MessageService:
                 COLLECTION_ARTICLE_DEV, (0.4, 0.2, 0.4), NB_ART,annee
             )
             consolidated_contexts.append({"article": "\n\n".join([f"{article['hit']}\n" for article in articles])})
-
         if "rapport" in base:
             rapports = self.similar_documents(
                 question, val, "rapport", ["content", "numeros_paragraphe", "dateparution", "titre", "description"],

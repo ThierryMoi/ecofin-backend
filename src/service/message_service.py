@@ -75,10 +75,21 @@ class MessageService:
 
     def similar_documents(self, question, val, collection, output_fields, collection_obj, reranker_weights, limit, partition_by_year=None):
         entities = []
+        lst_partition = []
         question_embed = eval(embedding_multilangue(question, URL_1024))
         tmp_embed = eval(embedding_multilangue(val, URL_1024))
-
-        lst_partition = [partition_by_year] if partition_by_year else self.list_partitions(collection_obj)
+        lst_partition_exists = self.list_partitions(collection_obj)
+        if partition_by_year:
+            if partition_by_year in lst_partition_exists:
+                lst_partition = [partition_by_year] 
+            else:
+                for an in lst_partition_exists:
+                   if int(an) - int(partition_by_year) in [-1,-2,2, 1]:
+                        lst_partition.append(an)
+                   else:
+                        lst_partition = lst_partition_existslst_partition
+        else :
+            lst_partition= lst_partition_exists
         reqs = self.config_search_requests(question_embed, tmp_embed, collection)
         rerank = WeightedRanker(*reranker_weights)
 
@@ -155,7 +166,8 @@ class MessageService:
             rap = self.similar_documents(
                 question, val, "indicateur", [
                     "annee", "pays", "dhIndexRank", "pibUsd", "population", "pibPerHabitationUsd", "externalDebtUsd", 
-                    "inflation", "goodsAndServicesImportUsd", "goodsAndServicesExportUsd"
+                    "inflation", "goodsAndServicesImportUsd", "goodsAndServicesExportUsd","foreignExchangeReserveUsd","currentBalanceLocal",
+                    "exchangeRate","currentBalanceUsd","transparencyIndexRank","ecartIdhRnbHab","monaieLocal"
                 ],
                 COLLECTION_ARTICLE_INDICATEUR, (0.5, 0.5), NB_ART,annee
             )

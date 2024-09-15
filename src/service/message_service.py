@@ -129,7 +129,7 @@ class MessageService:
             list_rap=[
             f"{'content chunk article: ' + article['hit']['content']}\n"
             f"{'numeros du chunck: ' + article['hit']['numeros_paragraphe']}\n"
-            f"{'periode du context du rapport: ' + article['dateparution']}\n"
+            f"{'periode du context du rapport: ' + article['hit']['dateparution']}\n"
             f"{'titre du rapport: ' + article['hit']['titre']}\n"
             f"{'description:' + article['hit']['description']}\n\n"
             for index, article in enumerate(rap)]
@@ -142,10 +142,10 @@ class MessageService:
                 COLLECTION_ARTICLE_INVESTIR, (0.6, 0.4), NB_ART,annee
             )
             list_rap = [
-                f"{'contenu: ' + article['content']}\n"
-                f"{'numéros de paragraphe: ' + article['numeros_paragraphe']}\n"
-                f"{'titre de la publication: ' + article['pub_title']}\n"
-                f"{'auteurs: ' + article['authors']}\n\n"
+                f"{'contenu: ' + article['hit']['content']}\n"
+                f"{'numéros de paragraphe: ' + article['hit']['numeros_paragraphe']}\n"
+                f"{'titre de la publication: ' + article['hit']['pub_title']}\n"
+                f"{'auteurs: ' + article['hit']['authors']}\n\n"
                 for index, article in enumerate(rap)
             ]
             consolidated_contexts.append({"investir_cameroun":"\n\n".join(list_rap)})
@@ -160,23 +160,23 @@ class MessageService:
                 COLLECTION_ARTICLE_INDICATEUR, (0.5, 0.5), NB_ART,annee
             )
             list_rap = [
-                f"{'année: ' + article['annee']}\n"
-                f"{'pays: ' + article['pays']}\n"
-                f"{'classement de lindice DH: ' + article['dhIndexRank']}\n"
-                f"{'PIB (USD): ' + article['pibUsd']}\n"
-                f"{'population: ' + article['population']}\n"
-                f"{'PIB par habitant (USD): ' + article['pibPerHabitationUsd']}\n"
-                f"{'dette extérieure (USD): ' + article['externalDebtUsd']}\n"
-                f"{'inflation: ' + article['inflation']}\n"
-                f"{'importations de biens et services (USD): ' + article['goodsAndServicesImportUsd']}\n"
-                f"{'exportations de biens et services (USD): ' + article['goodsAndServicesExportUsd']}\n"
-                f"{'réserve de change (USD): ' + article['foreignExchangeReserveUsd']}\n"
-                f"{'solde courant local: ' + article['currentBalanceLocal']}\n"
-                f"{'taux de change: ' + article['exchangeRate']}\n"
-                f"{'solde courant (USD): ' + article['currentBalanceUsd']}\n"
-                f"{'classement de lindice de transparence: ' + article['transparencyIndexRank']}\n"
-                f"{'écart IDH/RNB par habitant: ' + article['ecartIdhRnbHab']}\n"
-                f"{'monnaie locale: ' + article['monaieLocal']}\n\n"
+                f"{'année: ' + article['hit']['annee']}\n"
+                f"{'pays: ' + article['hit']['pays']}\n"
+                f"{'classement de lindice DH: ' + article['hit']['dhIndexRank']}\n"
+                f"{'PIB (USD): ' + article['hit']['pibUsd']}\n"
+                f"{'population: ' + article['hit']['population']}\n"
+                f"{'PIB par habitant (USD): ' + article['hit']['pibPerHabitationUsd']}\n"
+                f"{'dette extérieure (USD): ' + article['hit']['externalDebtUsd']}\n"
+                f"{'inflation: ' + article['hit']['inflation']}\n"
+                f"{'importations de biens et services (USD): ' + article['hit']['goodsAndServicesImportUsd']}\n"
+                f"{'exportations de biens et services (USD): ' + article['hit']['goodsAndServicesExportUsd']}\n"
+                f"{'réserve de change (USD): ' + article['hit']['foreignExchangeReserveUsd']}\n"
+                f"{'solde courant local: ' + article['hit']['currentBalanceLocal']}\n"
+                f"{'taux de change: ' + article['hit']['exchangeRate']}\n"
+                f"{'solde courant (USD): ' + article['hit']['currentBalanceUsd']}\n"
+                f"{'classement de lindice de transparence: ' + article['hit']['transparencyIndexRank']}\n"
+                f"{'écart IDH/RNB par habitant: ' + article['hit']['ecartIdhRnbHab']}\n"
+                f"{'monnaie locale: ' + article['hit']['monaieLocal']}\n\n"
                 for index, article in enumerate(rap)
             ]
             consolidated_contexts.append({"indicateur":"\n\n".join(list_rap)})

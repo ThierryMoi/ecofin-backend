@@ -84,10 +84,11 @@ class MessageService:
                 lst_partition = [partition_by_year] 
             else:
                 for an in lst_partition_exists:
-                   if int(an) - int(partition_by_year) in [-1,-2,2, 1]:
-                        lst_partition.append(an)
-                   else:
-                        lst_partition = lst_partition_exists
+                  if an != "_default":           
+                     if int(an) - int(partition_by_year) in [-1,-2,2,1]:
+                            lst_partition.append(an)
+                     else:
+                            lst_partition = lst_partition_exists
         else :
             lst_partition= lst_partition_exists
         reqs = self.config_search_requests(question_embed, tmp_embed, collection)

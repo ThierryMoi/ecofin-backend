@@ -11,6 +11,7 @@ class DiscussionBase(BaseModel):
 class DiscussionRead(DiscussionBase):
     name: Optional[str]
     discussion_id:str 
+    resume: Optional[str]
     created_at: Optional[datetime]
     updated_at: Optional[datetime]
     deleted_at: Optional[datetime]
@@ -26,6 +27,8 @@ class DiscussionReadPaginer(BaseModel):
 
 class DiscussionUpdate(BaseModel):
     name: Optional[str]
+    resume: Optional[str]
+
 
 
 class DiscussionDelete(DiscussionBase):

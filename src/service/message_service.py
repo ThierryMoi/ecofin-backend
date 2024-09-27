@@ -4,6 +4,7 @@ from repository.message_repository import MessageRepository
 from pymilvus import AnnSearchRequest, WeightedRanker
 from utils.requests import embedding_multilangue
 from utils.date_search import extract_year_with_context
+from configuration.openai import CLIENT_OPENAI
 
 from configuration.milvus import (
     NB_RAPPORT, NB_ART, COLLECTION_ARTICLE_INDICATEUR, COLLECTION_ARTICLE_TRANSACTION,
@@ -12,11 +13,35 @@ from configuration.milvus import (
 from configuration.milvus_dev import COLLECTION_ARTICLE_DEV
 
 class MessageService:
-    def __init__(self, message_repository):
+    def __init__(self, message_repository,discussion_repository):
         self.repo = message_repository
+        self.repo_discussion = discussion_repository
 
     def create_message(self, message: MessageBase) -> str:
-        return self.repo.create(message)
+        add= self.repo.create(message)
+        msg = self.repo.nb_message_by_user_by_discussion(message.user_id, message.discussion_id)
+        if msg not None:    
+            msg=str(msg)      
+            completion = CLIENT_OPENAI.chat.completions.create(
+                model="gpt-4o",
+                messages=[
+                    {"role": "system", "content": "tu es un spécialiste en redaction et résumé de  texte"},
+                    {"role": "user", "content": "resume cette discussion {msg}"}
+                ]
+            )
+            resume = completion.choices[0].message.content
+
+            completion = CLIENT_OPENAI.chat.completions.create(
+                model="gpt-4o",
+                messages=[
+                    {"role": "system", "content": "tu es un spécialiste en redaction et résumé de  texte"},
+                    {"role": "user", "content": "donne un titre de quelque mot à cette discussion {msg}"}
+                ]
+            )
+            titre = completion.choices[0].message.content
+            self.repo_discussion.update(message.discussion_id,{"name": titre,"resume":resume})
+        return add
+
 
     def get_all_message_by_user_discussion(self, user_id, discussion_id, page, page_size) -> dict:
         lst, nb = self.repo.find_all_by_user_discussion(user_id, discussion_id, page, page_size)
@@ -104,7 +129,6 @@ class MessageService:
             )
             for hit in res[0][:3]:
                 entities.append({"partition": partition, "distance": hit.distance, "hit": hit.entity.to_dict()['entity']})
-                #print(hit.entity.to_dict())
         return entities
 
     def rerank(self, COHERE_API_KEY, query, documents):
@@ -132,7 +156,6 @@ class MessageService:
             for index, article in enumerate(art)]
             consolidated_contexts.append({"article":"\n\n".join(list_art)})
                         
-      
         if "rapport" in base:
             rap=self.similar_documents(
                 question, val, "rapport", ["content", "numeros_paragraphe", "dateparution", "titre", "description"],

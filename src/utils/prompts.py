@@ -17,7 +17,7 @@ template_system = """
     """
 
 
-def human_prompt(question, context):
+def human_prompt(question, context,history):
     context_article = ""
     context_rapport = ""
     context_indicateur = ""
@@ -38,9 +38,9 @@ def human_prompt(question, context):
     
     template_user = f"""
         Réponds uniquement à mes questions sur le domaine financier et économique en Afrique.
-        Donne les sources (auteurs, dates, articles ou rapports).
+        Donne les sources (auteurs, dates, articles ou rapports et liens).
         Je te fournirai plusieurs contextes contenant des metadata : articles, rapports, indicateurs, transactions et investir au Cameroun.
-        La réponse doit toujours être basée sur le contexte.
+        La réponse doit toujours être basée sur le contexte et l'historique de la discussion: {history}.
         Question : {question}
         ==========
         Articles :
@@ -58,7 +58,8 @@ def human_prompt(question, context):
         Investir au Cameroun :
         {context_investir_cameroun}
         ==========
+        
         """
-    return template_user.format(question=question,context_investir_cameroun=context_investir_cameroun,  context_transaction=context_transaction, context_article=context_article,context_rapport=context_rapport,context_indicateur=context_indicateur)
+    return template_user.format(question=question,context_investir_cameroun=context_investir_cameroun,  context_transaction=context_transaction, context_article=context_article,context_rapport=context_rapport,context_indicateur=context_indicateur,history=history)
 
 

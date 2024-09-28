@@ -47,7 +47,7 @@ def get_all_discussions(page: int, page_size: int, Authorize: AuthJWT = Depends(
     return discussion_service.get_all_discussions(page, page_size)
 
 
-16
+
 
 @router.get("/all-by-user", response_model=DiscussionReadPaginer)
 def get_all_discussions_by_user_controller(page: int, page_size: int, user_id: str, Authorize: AuthJWT = Depends()):

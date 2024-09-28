@@ -30,7 +30,7 @@ discussion_service = DiscussionService(discussion_repository)
 
 
 message_repository = MessageRepository(MESSAGE_COLLECTION)
-message_service = MessageService(message_repository)
+message_service = MessageService(message_repository,discussion_repository)
 router = APIRouter(prefix='/messages',tags=['messages'])
 
 

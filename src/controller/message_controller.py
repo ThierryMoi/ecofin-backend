@@ -76,7 +76,6 @@ async def chat_controller(ws: WebSocket,token:str):
         # recuper la derniere historique du user
         
         context_list =   message_service.consolidation_context(query.get("question"),query.get("question"),query.get("base_donne"))
-        print(context_list)
         usr= user_service.get_user(user_id)
         if usr is None:
             print("user not found")

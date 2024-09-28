@@ -21,12 +21,13 @@ class MessageService:
         add= self.repo.create(message)
         msg = self.repo.nb_message_by_user_by_discussion(message.user_id, message.discussion_id)
         if msg is not None:    
-            msg=str(msg)      
+            msg=str(msg)     
+            print(msg) 
             completion = CLIENT_OPENAI.chat.completions.create(
                 model="gpt-4o",
                 messages=[
                     {"role": "system", "content": "tu es un spécialiste en redaction et résumé de  texte"},
-                    {"role": "user", "content": "resume cette discussion {msg}"}
+                    {"role": "user", "content": f"resume cette discussion {msg}"}
                 ]
             )
             resume = completion.choices[0].message.content
@@ -35,7 +36,7 @@ class MessageService:
                 model="gpt-4o",
                 messages=[
                     {"role": "system", "content": "tu es un spécialiste en redaction et résumé de  texte"},
-                    {"role": "user", "content": "donne un titre de quelque mot à cette discussion {msg}"}
+                    {"role": "user", "content": f"donne un titre de quelque mot à cette discussion {msg}"}
                 ]
             )
             titre = completion.choices[0].message.content

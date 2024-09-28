@@ -20,7 +20,7 @@ class MessageService:
     def create_message(self, message: MessageBase) -> str:
         add= self.repo.create(message)
         msg = self.repo.nb_message_by_user_by_discussion(message.user_id, message.discussion_id)
-        if msg not None:    
+        if msg is not None:    
             msg=str(msg)      
             completion = CLIENT_OPENAI.chat.completions.create(
                 model="gpt-4o",

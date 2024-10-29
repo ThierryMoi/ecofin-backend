@@ -11,6 +11,7 @@ from service.message_service import MessageService
 
 from repository.message_repository import MessageRepository
 from utils.prompts import template_system,human_prompt
+from utils.requests import split_string_with_limit
 
 from fastapi import WebSocket, WebSocketDisconnect
 
@@ -76,6 +77,7 @@ async def chat_controller(ws: WebSocket,token:str):
         # recuper la derniere historique du user
         
         context_list =   message_service.consolidation_context(query.get("question"),query.get("question"),query.get("base_donne"))
+
         usr= user_service.get_user(user_id)
         if usr is None:
             print("user not found")
@@ -91,7 +93,7 @@ async def chat_controller(ws: WebSocket,token:str):
             stream=True,
             messages=[
                 {"role": "system", "content": template_system},
-                {"role": "user", "content": human_prompt(query.get("question"), context_list,disc.get("resume"))}
+                {"role": "user", "content": split_string_with_limit(   human_prompt(query.get("question"), context_list,disc.get("resume")) ,100000)}
             ]
         )
         a=""

@@ -3,7 +3,7 @@ from model.message_model import MessageBase, MessageRead, MessageResponse,Messag
 from datetime import datetime
 from configuration.properties import app
 from service.auth_service import AuthJWT
-
+import tiktoken
 from configuration.openai import CLIENT_OPENAI
 
 from configuration.mongo import MESSAGE_COLLECTION,USER_COLLECTION,DISCUSSION_COLLECTION,OTP_COLLECTION
@@ -67,6 +67,7 @@ async def chat_controller(ws: WebSocket,token:str):
     Authorize = AuthJWT()
     Authorize.jwt_required("websocket", token=token)
     user_id = Authorize.get_raw_jwt(token).get("sub")
+    ENCODING = tiktoken.get_encoding("cl100k_base")
         
         
     await ws.accept()
@@ -93,7 +94,7 @@ async def chat_controller(ws: WebSocket,token:str):
             stream=True,
             messages=[
                 {"role": "system", "content": template_system},
-                {"role": "user", "content": split_string_with_limit(   human_prompt(query.get("question"), context_list,disc.get("resume")) ,100000)}
+                {"role": "user", "content": split_string_with_limit(   human_prompt(query.get("question"), context_list,disc.get("resume")) ,100000,ENCODING)}
             ]
         )
         a=""

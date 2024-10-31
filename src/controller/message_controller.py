@@ -94,7 +94,7 @@ async def chat_controller(ws: WebSocket,token:str):
             stream=True,
             messages=[
                 {"role": "system", "content": template_system},
-                {"role": "user", "content": split_string_with_limit(   human_prompt(query.get("question"), context_list,disc.get("resume")) ,10000,ENCODING)}
+                {"role": "user", "content": split_string_with_limit(   human_prompt(query.get("question"), context_list,disc.get("resume")) ,20000,ENCODING)}
             ]
         )
         a=""

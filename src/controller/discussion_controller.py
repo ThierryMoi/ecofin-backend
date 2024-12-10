@@ -34,7 +34,7 @@ def get_discussion(discussion_id: str, Authorize: AuthJWT = Depends()):
     Authorize.jwt_required()
     #user_id = Authorize.get_jwt_subject()
     discussion = discussion_service.get_discussion_by_id(discussion_id)
-    print(discussion)
+    #print(discussion)
     if discussion:
         return discussion
     raise HTTPException(status_code=404, detail="Discussion not found")

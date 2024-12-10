@@ -1,3 +1,4 @@
+"""
 from pymilvus import Collection, connections
 import os
 from dotenv import load_dotenv
@@ -30,3 +31,4 @@ COLLECTION_ARTICLE_DEV.create_index("title_embedding", index_params)
 COLLECTION_ARTICLE_DEV.create_index("time_embedding", index_params)
 COLLECTION_ARTICLE_DEV.load()
 
+"""

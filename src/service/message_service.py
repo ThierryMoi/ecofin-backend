@@ -8,9 +8,9 @@ from configuration.openai import CLIENT_OPENAI
 
 from configuration.milvus import (
     NB_RAPPORT, NB_ART, COLLECTION_ARTICLE_INDICATEUR, COLLECTION_ARTICLE_TRANSACTION,
-    COLLECTION_RAPPORT, URL_1024, VOISIN, COLLECTION_ARTICLE_INVESTIR
+    COLLECTION_RAPPORT, URL_1024, VOISIN, COLLECTION_ARTICLE_INVESTIR ,COLLECTION_ARTICLE
 )
-from configuration.milvus_dev import COLLECTION_ARTICLE_DEV
+#from configuration.milvus_dev import COLLECTION_ARTICLE_DEV
 
 class MessageService:
     def __init__(self, message_repository,discussion_repository):
@@ -22,7 +22,7 @@ class MessageService:
         msg = self.repo.nb_message_by_user_by_discussion(message.user_id, message.discussion_id)
         if msg is not None:    
             msg=str(msg)     
-            print(msg) 
+            #print(msg) 
             completion = CLIENT_OPENAI.chat.completions.create(
                 model="gpt-4o",
                 messages=[
@@ -99,6 +99,7 @@ class MessageService:
     def list_partitions(self, collection):
         return [col.name for col in collection.partitions]
 
+    """
     def similar_documents(self, question, val, collection, output_fields, collection_obj, reranker_weights, limit, partition_by_year=None):
         entities = []
         lst_partition = []
@@ -131,6 +132,70 @@ class MessageService:
             for hit in res[0][:3]:
                 entities.append({"partition": partition, "distance": hit.distance, "hit": hit.entity.to_dict()['entity']})
         return entities
+    """
+    def compute_freshness_score(self, date_field, reference_year):
+        """
+        Calcule un score de fraîcheur basé sur la proximité de la date avec l'année de référence.
+        """
+        if not date_field or not reference_year:
+            return 0  # Aucun score si la date ou l'année de référence est manquante
+        try:
+            document_year = int(date_field)  # Extraire l'année du champ de date
+            freshness = max(0, 1 - abs(document_year - int(reference_year)) / 10)  # Score décroissant au fil des années
+            return freshness
+        except ValueError:
+            return 0  # Retourne 0 si le format de la date est invalide
+
+    def combine_scores(self, relevance_score, freshness_score, alpha=0.7):
+        """
+        Combine le score de pertinence et de fraîcheur en utilisant une pondération alpha.
+        """
+        return alpha * relevance_score + (1 - alpha) * freshness_score
+
+    def similar_documents(self, question, val, collection, output_fields, collection_obj, reranker_weights, limit, partition_by_year=None):
+        entities = []
+        lst_partition = []
+        question_embed = eval(embedding_multilangue(question, URL_1024))
+        tmp_embed = eval(embedding_multilangue(val, URL_1024))
+        lst_partition_exists = self.list_partitions(collection_obj)
+
+        # Sélection des partitions selon l'année
+        if partition_by_year:
+            if partition_by_year in lst_partition_exists:
+                lst_partition = [partition_by_year]
+            else:
+                # Prendre les années proches ou toutes si aucune correspondance
+                lst_partition = [
+                    an for an in lst_partition_exists if an != "_default" and abs(int(an) - int(partition_by_year)) <= 2
+                ] or lst_partition_exists
+        else:
+            lst_partition = lst_partition_exists
+
+        # Configurer les requêtes
+        reqs = self.config_search_requests(question_embed, tmp_embed, collection)
+        rerank = WeightedRanker(*reranker_weights)
+
+        # Recherche dans les partitions sélectionnées
+        for partition in lst_partition:
+            res = collection_obj.hybrid_search(
+                reqs,
+                rerank,
+                limit=limit,
+                output_fields=output_fields,
+                partition_names=[partition]
+            )
+            # Ajouter des métadonnées pour le tri
+            for hit in res[0]:
+                distance = hit.distance
+                entity = hit.entity.to_dict()['entity']
+                date_field = entity.get("annee") 
+                freshness_score = self.compute_freshness_score(date_field, 2024)
+                combined_score = self.combine_scores(distance, freshness_score)
+                entities.append({"partition": partition, "combined_score": combined_score, "hit": entity})
+
+        # Trier les entités par score combiné
+        entities = sorted(entities, key=lambda x: x["combined_score"], reverse=True)
+        return entities
 
     def rerank(self, COHERE_API_KEY, query, documents):
         from pymilvus.model.reranker import CohereRerankFunction
@@ -139,7 +204,7 @@ class MessageService:
         results = cohere_rf(query=query, documents=documents, top_n=3)
 
         return [result.text for result in results]
-
+    """
     def consolidation_context(self, question, val, base):
         consolidated_contexts = []
         annee= extract_year_with_context(question)            
@@ -245,4 +310,93 @@ class MessageService:
             ]
             consolidated_contexts.append({"transaction":"\n\n".join(list_rap)})
             
+        return consolidated_contexts
+    """
+
+    def consolidation_context(self, question, val, base):
+        """
+        Consolidation et classement des contextes pour différents types de bases de données.
+
+        Args:
+            question (str): La question posée.
+            val (str): La valeur contextuelle à utiliser pour la recherche.
+            base (list): Liste des types de bases à interroger.
+
+        Returns:
+            list: Contextes consolidés et classés pour chaque base.
+        """
+        consolidated_contexts = []
+        year = extract_year_with_context(question)
+        collection_mapping = {
+            "article": {
+                "collection": COLLECTION_ARTICLE,
+                "output_fields": ["content", "numeros_paragraphe", "time_published", "pub_title", "authors","pub_link"],
+                "weights": (0.4, 0.2, 0.4),
+                "limit": NB_ART
+            },
+            "rapport": {
+                "collection": COLLECTION_RAPPORT,
+                "output_fields": ["content", "numeros_paragraphe", "dateparution", "titre", "description"],
+                "weights": (0.5, 0.2, 0.2, 0.1),
+                "limit": NB_RAPPORT
+            },
+            "investir_cameroun": {
+                "collection": COLLECTION_ARTICLE_INVESTIR,
+                "output_fields": ["content", "numeros_paragraphe", "pub_title", "authors","pub_link"],
+                "weights": (0.6, 0.4),
+                "limit": NB_ART
+            },
+            "indicateur": {
+                "collection": COLLECTION_ARTICLE_INDICATEUR,
+                "output_fields": [
+                    "annee", "pays", "dhIndexRank", "pibUsd", "population", "pibPerHabitationUsd",
+                    "externalDebtUsd", "inflation", "goodsAndServicesImportUsd", "goodsAndServicesExportUsd",
+                    "foreignExchangeReserveUsd", "currentBalanceLocal", "exchangeRate", "currentBalanceUsd",
+                    "transparencyIndexRank", "ecartIdhRnbHab", "monaieLocal"
+                ],
+                "weights": (0.5, 0.5),
+                "limit": NB_ART
+            }
+        }
+
+        question_embed = eval(embedding_multilangue(question, URL_1024))
+        tmp_embed = eval(embedding_multilangue(val, URL_1024))
+
+        for db_type in base:
+            if db_type in collection_mapping:
+                config = collection_mapping[db_type]
+                results = self.similar_documents(
+                    question=question,
+                    val=val,
+                    collection=db_type,
+                    output_fields=config["output_fields"],
+                    collection_obj=config["collection"],
+                    reranker_weights=config["weights"],
+                    limit=config["limit"],
+                    partition_by_year=year
+                )
+                
+                # Construire les contextes à partir des résultats
+                formatted_results = []
+                for result in results:
+                    combined_score = result.get("combined_score", 0)
+                    partition = result.get("partition", "N/A")
+                    hit = result.get("hit", {})
+
+                    # Formater le contenu à partir des champs définis
+                    content = "\n".join([
+                        f"{field.replace('_', ' ').capitalize()}: {hit.get(field, 'N/A')}"
+                        for field in config["output_fields"] if field in hit
+                    ])
+
+                    formatted_results.append({
+                        "partition": partition,
+                        "score": combined_score,
+                        "content": content
+                    })
+
+                # Trier les résultats par `combined_score` décroissant
+                formatted_results.sort(key=lambda x: x["score"], reverse=True)
+                # Ajouter les contenus triés au contexte consolidé
+                consolidated_contexts.append({db_type: "\n\n".join([res["content"] for res in formatted_results])})
         return consolidated_contexts

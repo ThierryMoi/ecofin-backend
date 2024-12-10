@@ -48,6 +48,6 @@ def split_string_with_limit(text: str, limit: int, encoding: tiktoken.Encoding):
             for token in part
         ]
         text_parts.append("".join(text))
-        print(text_parts)
+       # print(text_parts)
     return text_parts[0]
 

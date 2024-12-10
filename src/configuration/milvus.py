@@ -6,7 +6,7 @@ load_dotenv()
 
 MILVUS_PORT=os.environ.get("MILVUS_PORT")
 MILVUS_HOST=os.environ.get("MILVUS_HOST")
-#COLLECTION_ARTICLE_NAME=str(os.environ.get("COLLECTION_ARTICLE_NAME"))
+COLLECTION_ARTICLE_NAME=str(os.environ.get("COLLECTION_ARTICLE_NAME"))
 COLLECTION_RAPPORT_NAME=str(os.environ.get("COLLECTION_RAPPORT_NAME"))
 
 COLLECTION_ARTICLE_INVESTIR_NAME=str(os.environ.get("COLLECTION_ARTICLE_INVESTIR_NAME"))
@@ -29,12 +29,12 @@ index_params = {
 }
 
 ###########################################################################################""
-#COLLECTION_ARTICLE = Collection(name=COLLECTION_ARTICLE_NAME)
+COLLECTION_ARTICLE = Collection(name=COLLECTION_ARTICLE_NAME)
 
-#COLLECTION_ARTICLE.create_index("paragraphe_embedding", index_params)
-#COLLECTION_ARTICLE.create_index("title_embedding", index_params)
-#COLLECTION_ARTICLE.create_index("time_embedding", index_params)
-#COLLECTION_ARTICLE.load()
+COLLECTION_ARTICLE.create_index("paragraphe_embedding", index_params)
+COLLECTION_ARTICLE.create_index("title_embedding", index_params)
+COLLECTION_ARTICLE.create_index("time_embedding", index_params)
+COLLECTION_ARTICLE.load()
 
 
 

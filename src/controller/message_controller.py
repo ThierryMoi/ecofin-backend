@@ -62,7 +62,7 @@ def get_message_user_discussion(user_id: str, discussion_id: str,page :int , pag
 async def chat_controller(ws: WebSocket,token:str):
     
   #  authorization = ws.headers.get("Sec-Websocket-Protocol")
-  #  if authorization is None:
+  #if authorization is None:
       #  authorization = ws.headers.get("Authorization")       
     Authorize = AuthJWT()
     Authorize.jwt_required("websocket", token=token)
@@ -90,11 +90,11 @@ async def chat_controller(ws: WebSocket,token:str):
             raise HTTPException(status_code=404, detail="Discussion not found")
 
         completion = CLIENT_OPENAI.chat.completions.create(
-            model="gpt-4o",
+            model= "gpt-4o",  #str(query.get("model")),#",
             stream=True,
             messages=[
                 {"role": "system", "content": template_system},
-                {"role": "user", "content": split_string_with_limit(   human_prompt(query.get("question"), context_list,disc.get("resume")) ,20000,ENCODING)}
+                {"role": "user", "content": split_string_with_limit(   human_prompt(query.get("question"), context_list,disc.get("resume")) ,100000,ENCODING)}
             ]
         )
         a=""
@@ -103,7 +103,7 @@ async def chat_controller(ws: WebSocket,token:str):
             if response:
                 a = a+response
                 await ws.send_text(str(response))
-   
+                print(a)
                 
         message_service.create_message(MessageBase(discussion_id = query.get("discussion_id"),user_id=user_id,response=a,question=query.get("question")))
 

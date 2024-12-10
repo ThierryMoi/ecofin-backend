@@ -185,13 +185,14 @@ class MessageService:
                 partition_names=[partition]
             )
             # Ajouter des métadonnées pour le tri
-            for hit in res[0]:
-                distance = hit.distance
-                entity = hit.entity.to_dict()['entity']
-                date_field = entity.get("annee") 
-                freshness_score = self.compute_freshness_score(date_field, 2024)
-                combined_score = self.combine_scores(distance, freshness_score)
-                entities.append({"partition": partition, "combined_score": combined_score, "hit": entity})
+            if len(res) > 0:
+                for hit in res[0]:
+                    distance = hit.distance
+                    entity = hit.entity.to_dict()['entity']
+                    date_field = entity.get("annee") 
+                    freshness_score = self.compute_freshness_score(date_field, 2024)
+                    combined_score = self.combine_scores(distance, freshness_score)
+                    entities.append({"partition": partition, "combined_score": combined_score, "hit": entity})
 
         # Trier les entités par score combiné
         entities = sorted(entities, key=lambda x: x["combined_score"], reverse=True)

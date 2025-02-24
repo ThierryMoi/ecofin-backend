@@ -401,3 +401,78 @@ class MessageService:
                 # Ajouter les contenus triés au contexte consolidé
                 consolidated_contexts.append({db_type: "\n\n".join([res["content"] for res in formatted_results])})
         return consolidated_contexts
+
+    def recherche_consolider(self, question, val, base):
+        """
+        Consolidation et classement des contextes pour différents types de bases de données.
+
+        Args:
+            question (str): La question posée.
+            val (str): La valeur contextuelle à utiliser pour la recherche.
+            base (list): Liste des types de bases à interroger.
+
+        Returns:
+            list: Contextes consolidés et classés pour chaque base.
+        """
+        consolidated_contexts = []
+        year = extract_year_with_context(question)
+        collection_mapping = {
+            "rapport": {
+                "collection": COLLECTION_RAPPORT,
+                "output_fields": ["content", "numeros_paragraphe", "dateparution", "titre", "description"],
+                "weights": (0.5, 0.2, 0.2, 0.1),
+                "limit": NB_RAPPORT
+            },
+            "indicateur": {
+                "collection": COLLECTION_ARTICLE_INDICATEUR,
+                "output_fields": [
+                    "annee", "pays", "dhIndexRank", "pibUsd", "population", "pibPerHabitationUsd",
+                    "externalDebtUsd", "inflation", "goodsAndServicesImportUsd", "goodsAndServicesExportUsd",
+                    "foreignExchangeReserveUsd", "currentBalanceLocal", "exchangeRate", "currentBalanceUsd",
+                    "transparencyIndexRank", "ecartIdhRnbHab", "monaieLocal"
+                ],
+                "weights": (0.5, 0.5),
+                "limit": NB_ART
+            }
+        }
+
+        question_embed = eval(embedding_multilangue(question, URL_1024))
+        tmp_embed = eval(embedding_multilangue(val, URL_1024))
+
+        for db_type in base:
+            if db_type in collection_mapping:
+                config = collection_mapping[db_type]
+                results = self.similar_documents(
+                    question=question,
+                    val=val,
+                    collection=db_type,
+                    output_fields=config["output_fields"],
+                    collection_obj=config["collection"],
+                    reranker_weights=config["weights"],
+                    limit=config["limit"],
+                    partition_by_year=year
+                )
+                
+                # Construire les contextes à partir des résultats
+                formatted_results = []
+                for result in results:
+                    combined_score = result.get("combined_score", 0)
+                    partition = result.get("partition", "N/A")
+                    hit = result.get("hit", {})
+
+                    # Formater le contenu à partir des champs définis
+                    content = "\n".join([
+                        f"{field.replace('_', ' ').capitalize()}: {hit.get(field, 'N/A')}"
+                        for field in config["output_fields"] if field in hit
+                    ])
+
+                    formatted_results.append({
+                        "partition": partition,
+                        "score": combined_score,
+                        "content": content
+                    })
+
+                # Trier les résultats par `combined_score` décroissant
+                formatted_results.sort(key=lambda x: x["score"], reverse=True)
+                # Ajouter les contenus triés au contexte consolidé
+        return formatted_results

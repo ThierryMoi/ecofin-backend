@@ -97,5 +97,7 @@ def extract_year_with_context(text: str) -> str:
 def is_valid_year(year: str) -> bool:
     """Vérifie si l'année est valide dans une plage réaliste."""
     year_int = int(year)
-    return 1000 <= year_int <= 2999
+    return 1000 <= year_int <= 2024
+
+
 

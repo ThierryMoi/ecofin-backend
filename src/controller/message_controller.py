@@ -3,7 +3,7 @@ from model.message_model import MessageBase, MessageRead, MessageResponse,Messag
 from datetime import datetime
 from configuration.properties import app
 from service.auth_service import AuthJWT
-
+import tiktoken
 from configuration.openai import CLIENT_OPENAI
 
 from configuration.mongo import MESSAGE_COLLECTION,USER_COLLECTION,DISCUSSION_COLLECTION,OTP_COLLECTION
@@ -11,6 +11,7 @@ from service.message_service import MessageService
 
 from repository.message_repository import MessageRepository
 from utils.prompts import template_system,human_prompt
+from utils.requests import split_string_with_limit
 
 from fastapi import WebSocket, WebSocketDisconnect
 
@@ -30,7 +31,7 @@ discussion_service = DiscussionService(discussion_repository)
 
 
 message_repository = MessageRepository(MESSAGE_COLLECTION)
-message_service = MessageService(message_repository)
+message_service = MessageService(message_repository,discussion_repository)
 router = APIRouter(prefix='/messages',tags=['messages'])
 
 
@@ -61,11 +62,12 @@ def get_message_user_discussion(user_id: str, discussion_id: str,page :int , pag
 async def chat_controller(ws: WebSocket,token:str):
     
   #  authorization = ws.headers.get("Sec-Websocket-Protocol")
-  #  if authorization is None:
+  #if authorization is None:
       #  authorization = ws.headers.get("Authorization")       
     Authorize = AuthJWT()
     Authorize.jwt_required("websocket", token=token)
     user_id = Authorize.get_raw_jwt(token).get("sub")
+    ENCODING = tiktoken.get_encoding("cl100k_base")
         
         
     await ws.accept()
@@ -76,7 +78,7 @@ async def chat_controller(ws: WebSocket,token:str):
         # recuper la derniere historique du user
         
         context_list =   message_service.consolidation_context(query.get("question"),query.get("question"),query.get("base_donne"))
-        print(context_list)
+
         usr= user_service.get_user(user_id)
         if usr is None:
             print("user not found")
@@ -88,11 +90,11 @@ async def chat_controller(ws: WebSocket,token:str):
             raise HTTPException(status_code=404, detail="Discussion not found")
 
         completion = CLIENT_OPENAI.chat.completions.create(
-            model="gpt-3.5-turbo",
+            model= "gpt-4o",  #str(query.get("model")),#",
             stream=True,
             messages=[
                 {"role": "system", "content": template_system},
-                {"role": "user", "content": human_prompt(query.get("question"), context_list)}
+                {"role": "user", "content": split_string_with_limit(   human_prompt(query.get("question"), context_list,disc.get("resume")) ,20000,ENCODING)}
             ]
         )
         a=""
@@ -101,7 +103,7 @@ async def chat_controller(ws: WebSocket,token:str):
             if response:
                 a = a+response
                 await ws.send_text(str(response))
-   
+                print(a)
                 
         message_service.create_message(MessageBase(discussion_id = query.get("discussion_id"),user_id=user_id,response=a,question=query.get("question")))
 

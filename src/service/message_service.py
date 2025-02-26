@@ -438,7 +438,8 @@ class MessageService:
 
         question_embed = eval(embedding_multilangue(question, URL_1024))
         tmp_embed = eval(embedding_multilangue(val, URL_1024))
-
+        
+        formatted_results = []
         for db_type in base:
             if db_type in collection_mapping:
                 config = collection_mapping[db_type]
@@ -454,7 +455,6 @@ class MessageService:
                 )
                 
                 # Construire les contextes à partir des résultats
-                formatted_results = []
                 for result in results:
                     combined_score = result.get("combined_score", 0)
                     partition = result.get("partition", "N/A")

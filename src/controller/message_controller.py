@@ -63,7 +63,7 @@ def search(query):
     #Authorize.jwt_required()
     #user_id = Authorize.get_jwt_subject()
     
-    return message_service.recherche_consolider(query,query,'rapport')
+    return message_service.recherche_consolider(query,query,['rapport'])
 
 @router.websocket("/chat")
 async def chat_controller(ws: WebSocket,token:str):

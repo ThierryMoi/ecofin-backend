@@ -460,19 +460,17 @@ class MessageService:
                     partition = result.get("partition", "N/A")
                     hit = result.get("hit", {})
 
-                    # Formater le contenu à partir des champs définis
-                    content = "\n".join([
-                        f"{field.replace('_', ' ').capitalize()}: {hit.get(field, 'N/A')}"
-                        for field in config["output_fields"] if field in hit
-                    ])
+                    content = {
+                        field.capitalize(): hit.get(field, 'N/A')
+                        for field in config["output_fields"]
+                    }
 
                     formatted_results.append({
+                        "base_de_donnee": db_type
                         "partition": partition,
                         "score": combined_score,
                         "content": content
                     })
-
                 # Trier les résultats par `combined_score` décroissant
-                formatted_results.sort(key=lambda x: x["score"], reverse=True)
-                # Ajouter les contenus triés au contexte consolidé
+        formatted_results.sort(key=lambda x: x["score"], reverse=True)
         return formatted_results

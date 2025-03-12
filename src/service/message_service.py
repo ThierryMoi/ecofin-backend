@@ -466,7 +466,7 @@ class MessageService:
                     }
 
                     formatted_results.append({
-                        "base_de_donnee": db_type
+                        "base_de_donnee": db_type,
                         "partition": partition,
                         "score": combined_score,
                         "content": content

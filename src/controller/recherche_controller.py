@@ -36,6 +36,6 @@ def search(query):
     #Authorize.jwt_required()
     #user_id = Authorize.get_jwt_subject()
     
-    return RapportList(**message_service.recherche_consolider(query,query,['rapport']))
+    return message_service.recherche_consolider(query,query,['rapport'])
 
 app.include_router(router)

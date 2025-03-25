@@ -421,7 +421,7 @@ class MessageService:
                 "collection": COLLECTION_RAPPORT,
                 "output_fields": [ "numeros_paragraphe", "dateparution", "titre", "description"],
                 "weights": (0.5, 0.2, 0.2, 0.1),
-                "limit": 10
+                "limit": NB_RAPPORT
             },
             "indicateur": {
                 "collection": COLLECTION_ARTICLE_INDICATEUR,
@@ -432,7 +432,7 @@ class MessageService:
                     "transparencyIndexRank", "ecartIdhRnbHab", "monaieLocal"
                 ],
                 "weights": (0.5, 0.5),
-                "limit": 3
+                "limit": NB_ART
             }
         }
 
@@ -450,7 +450,7 @@ class MessageService:
                     output_fields=config["output_fields"],
                     collection_obj=config["collection"],
                     reranker_weights=config["weights"],
-                    limit=2,
+                    limit=config["limit"],
                     partition_by_year=year
                 )
                 

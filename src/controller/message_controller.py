@@ -48,7 +48,7 @@ def read_message(message_id: str, Authorize: AuthJWT = Depends()):
 
 
 
-@router.get("all-message-by-discusion-user",response_model=MessageReadPaginer)
+@router.get("/all-message-by-discusion-user",response_model=MessageReadPaginer)
 def get_message_user_discussion(user_id: str, discussion_id: str,page :int , page_size:int , Authorize: AuthJWT = Depends()):
     
     Authorize.jwt_required()
@@ -57,13 +57,6 @@ def get_message_user_discussion(user_id: str, discussion_id: str,page :int , pag
     
     return message_service.get_all_message_by_user_discussion(user_id, discussion_id, page, page_size)
 
-@router.get("search")
-def search(query):
-    
-    #Authorize.jwt_required()
-    #user_id = Authorize.get_jwt_subject()
-    
-    return message_service.recherche_consolider(query,query,['rapport'])
 
 @router.websocket("/chat")
 async def chat_controller(ws: WebSocket,token:str):

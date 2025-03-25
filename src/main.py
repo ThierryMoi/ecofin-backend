@@ -3,12 +3,11 @@ from fastapi.middleware.cors import CORSMiddleware
 from configuration.properties import app,PORT
 from controller.user_controller import *
 from controller.auth_controller import *
-
+from controller.recherche_controller import *
 from controller.message_controller import *
 from controller.discussion_controller import *
 
 import uvicorn
-from prometheus_fastapi_instrumentator import Instrumentator
 from fastapi import FastAPI
 
 
@@ -24,7 +23,7 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-Instrumentator().instrument(app).expose(app)
+#Instrumentator().instrument(app).expose(app)
 
 if __name__ == '__main__':
     uvicorn.run("__main__:app", host="0.0.0.0", port=8008, reload=True, workers=2)

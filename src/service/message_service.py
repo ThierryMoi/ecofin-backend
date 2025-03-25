@@ -419,7 +419,7 @@ class MessageService:
         collection_mapping = {
             "rapport": {
                 "collection": COLLECTION_RAPPORT,
-                "output_fields": ["content", "numeros_paragraphe", "dateparution", "titre", "description"],
+                "output_fields": [ "numeros_paragraphe", "dateparution", "titre", "description"],
                 "weights": (0.5, 0.2, 0.2, 0.1),
                 "limit": NB_RAPPORT
             },
@@ -473,14 +473,14 @@ class MessageService:
                     })
         seen_titles = set()
         unique_results = []
+        if db_type== "rapport":
+            for result in formatted_results:
+                title = result["content"].get("Titre", "N/A")  # Assure-toi que "Titre" est bien le champ correspondant
+                if title not in seen_titles:
+                    seen_titles.add(title)
+                    unique_results.append(result)
 
-        for result in formatted_results:
-            title = result["content"].get("Titre", "N/A")  # Assure-toi que "Titre" est bien le champ correspondant
-            if title not in seen_titles:
-                seen_titles.add(title)
-                unique_results.append(result)
-
-        formatted_results = unique_results
+            formatted_results = unique_results
 
                 # Trier les résultats par `combined_score` décroissant
         formatted_results.sort(key=lambda x: x["score"], reverse=True)

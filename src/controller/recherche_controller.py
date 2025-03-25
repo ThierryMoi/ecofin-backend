@@ -30,7 +30,7 @@ def search(query):
     
     return message_service.recherche_consolider(query,query,['indicateur'])
 
-@router.get("/search-rapport",response_model=RapportList)
+@router.get("/search-rapport")
 def search(query):
     
     #Authorize.jwt_required()

@@ -5,6 +5,7 @@ from pymilvus import AnnSearchRequest, WeightedRanker
 from utils.requests import embedding_multilangue
 from utils.date_search import extract_year_with_context
 from configuration.openai import CLIENT_OPENAI
+from utils.requests import split_string_with_limit
 
 from configuration.milvus import (
     NB_RAPPORT, NB_ART, COLLECTION_ARTICLE_INDICATEUR, COLLECTION_ARTICLE_TRANSACTION,
@@ -415,11 +416,12 @@ class MessageService:
             list: Contextes consolidés et classés pour chaque base.
         """
         consolidated_contexts = []
+        lst_doc=[]
         year = extract_year_with_context(question)
         collection_mapping = {
             "rapport": {
                 "collection": COLLECTION_RAPPORT,
-                "output_fields": [ "numeros_paragraphe", "dateparution", "titre", "description"],
+                "output_fields": [ "content", "dateparution", "titre", "description"],
                 "weights": (0.5, 0.2, 0.2, 0.1),
                 "limit": NB_RAPPORT
             },
@@ -464,17 +466,51 @@ class MessageService:
                         field.capitalize(): hit.get(field, 'N/A')
                         for field in config["output_fields"]
                     }
-
+                    contentchat = "\n".join([f"{field.replace('_', ' ').capitalize()}: {hit.get(field, 'N/A')}"
+                        for field in config["output_fields"] if field in hit
+                    ])
+                    lst_doc.append(contentchat)
                     formatted_results.append({
                         "base_de_donnee": db_type,
                         "partition": partition,
                         "score": combined_score,
-                        "content": content
-                    })
+                        "content": content,
+                        })
+
+                    import tiktoken
+
+        ENCODING = tiktoken.get_encoding("cl100k_base")
+        
+        template_system = """
+            Réponse  en Français
+            Tu es un assistant IA spécialisé dans la veille économique et financière en Afrique.
+            Tu ne réponds qu'aux questions concernant ce domaine.
+            Tu dois être capable de fournir des analyses financières et économiques.
+            Tu fourniras une réponse précise à des questions sur la base d'un contexte qui t'ai donné.
+            Tu ne donnera point de reponse qui existe pas dans le contexte..
+            Le contexte contient des métadonnées qui te serviront à fournir des réponses avec des sources et une date.
+            Tu répondras poliment si tu ne disposes pas d'assez d'informations pour répondre à la question sur la base du contexte. 
+            Si la question est une salutation, réponds simplement par une salutation et n'utilise en aucun cas le contexte. 
+            Réponds toujours dans la langue utilisée pour la question.
+            Reformule toujours le texte et fournis une réponse structurée et compréhensible.
+            Donne toujours tes sources.
+            
+            """
+
+        completion = CLIENT_OPENAI.chat.completions.create(
+                        model="gpt-3.5-turbo",
+                        messages=[
+                            {"role": "system", "content": template_system},
+                            {"role": "user", "content": split_string_with_limit(  f"fais un résume génerique de ces informations {str(lst_doc)}" ,128000,ENCODING)}
+                        ]
+                    )
+        resume = completion.choices[0].message.content
+
         seen_titles = set()
         unique_results = []
         if db_type== "rapport":
             for result in formatted_results:
+                del result["content"]["Content"]
                 title = result["content"].get("Titre", "N/A")  # Assure-toi que "Titre" est bien le champ correspondant
                 if title not in seen_titles:
                     seen_titles.add(title)
@@ -484,4 +520,4 @@ class MessageService:
 
                 # Trier les résultats par `combined_score` décroissant
         formatted_results.sort(key=lambda x: x["score"], reverse=True)
-        return formatted_results
+        return {"insight":resume,"sources":formatted_results}

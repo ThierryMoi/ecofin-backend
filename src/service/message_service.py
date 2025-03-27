@@ -422,7 +422,7 @@ class MessageService:
             "rapport": {
                 "collection": COLLECTION_RAPPORT,
                 "output_fields": [ "content", "dateparution", "titre", "description"],
-                "weights": (0.5, 0.2, 0.2, 0.1),
+                "weights": (0.5, 0.1, 0.1, 0.3),
                 "limit": NB_RAPPORT
             },
             "indicateur": {

@@ -501,8 +501,17 @@ class MessageService:
                         model="gpt-4o",
                         messages=[
                             {"role": "system", "content": template_system},
-                            {"role": "user", "content": split_string_with_limit(  f"repond à cette question {question} sur la base de cette  ces informations et donne le ou les rapports les plus pertinent a la question {str(lst_doc)}" ,20000,ENCODING)}
-                        ]
+                            {
+                                "role": "user",
+                                "content": split_string_with_limit(
+                                    f"""Réponds de manière simple et structurée à la question suivante : {question}. 
+                                    Utilise uniquement les informations fournies ci-dessous pour formuler ta réponse : {str(lst_doc)}. 
+                                    Si nécessaire, cite explicitement les parties les plus pertinentes. 
+                                    À la fin, fournis une liste des documents ou rapports les plus pertinents en guise de référence.""",
+                                    20000,
+                                    ENCODING
+                                )
+                            }                        ] 
                     )
         resume = completion.choices[0].message.content
         seen_titles = set()

@@ -504,7 +504,7 @@ class MessageService:
                             {
                                 "role": "user",
                                 "content": split_string_with_limit(
-                                    f"""Réponds de manière détaillée et structurée à la question suivante : {question}. 
+                                    f"""Réponds de manière simple et structurée à la question suivante : {question}. 
                                     Utilise uniquement les informations fournies ci-dessous pour formuler ta réponse : {str(lst_doc)}. 
                                     Si nécessaire, cite explicitement les parties les plus pertinentes. 
                                     À la fin, fournis une liste des documents ou rapports les plus pertinents en guise de référence.""",

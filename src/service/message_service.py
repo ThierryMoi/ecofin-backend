@@ -498,14 +498,13 @@ class MessageService:
             """
 
         completion = CLIENT_OPENAI.chat.completions.create(
-                        model="gpt-3.5-turbo",
+                        model="gpt-4o",
                         messages=[
                             {"role": "system", "content": template_system},
-                            {"role": "user", "content": split_string_with_limit(  f"fais un résume génerique de ces informations {str(lst_doc)}" ,128000,ENCODING)}
+                            {"role": "user", "content": split_string_with_limit(  f"repond à cette question {question} sur la base de cette  ces informations et donne le ou les rapports les plus pertinent a la question {str(lst_doc)}" ,20000,ENCODING)}
                         ]
                     )
         resume = completion.choices[0].message.content
-
         seen_titles = set()
         unique_results = []
         if db_type== "rapport":

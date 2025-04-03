@@ -6,6 +6,7 @@ from utils.requests import embedding_multilangue
 from utils.date_search import extract_year_with_context
 from configuration.openai import CLIENT_OPENAI
 from utils.requests import split_string_with_limit
+from utils.prompts_search import template_system_search,human_prompt_search
 
 from configuration.milvus import (
     NB_RAPPORT, NB_ART, COLLECTION_ARTICLE_INDICATEUR, COLLECTION_ARTICLE_TRANSACTION,
@@ -100,40 +101,6 @@ class MessageService:
     def list_partitions(self, collection):
         return [col.name for col in collection.partitions]
 
-    """
-    def similar_documents(self, question, val, collection, output_fields, collection_obj, reranker_weights, limit, partition_by_year=None):
-        entities = []
-        lst_partition = []
-        question_embed = eval(embedding_multilangue(question, URL_1024))
-        tmp_embed = eval(embedding_multilangue(val, URL_1024))
-        lst_partition_exists = self.list_partitions(collection_obj)
-        if partition_by_year:
-            if partition_by_year in lst_partition_exists:
-                lst_partition = [partition_by_year] 
-            else:
-                for an in lst_partition_exists:
-                  if an != "_default":           
-                     if int(an) - int(partition_by_year) in [-1,-2,2,1]:
-                            lst_partition.append(an)
-                     else:
-                            lst_partition = lst_partition_exists
-        else :
-            lst_partition= lst_partition_exists
-        reqs = self.config_search_requests(question_embed, tmp_embed, collection)
-        rerank = WeightedRanker(*reranker_weights)
-
-        for partition in lst_partition:
-            res = collection_obj.hybrid_search(
-                reqs,
-                rerank,
-                limit=limit,
-                output_fields=output_fields,
-                partition_names=[partition]
-            )
-            for hit in res[0][:3]:
-                entities.append({"partition": partition, "distance": hit.distance, "hit": hit.entity.to_dict()['entity']})
-        return entities
-    """
     def compute_freshness_score(self, date_field, reference_year):
         """
         Calcule un score de fraîcheur basé sur la proximité de la date avec l'année de référence.
@@ -206,115 +173,7 @@ class MessageService:
         results = cohere_rf(query=query, documents=documents, top_n=3)
 
         return [result.text for result in results]
-    """
-    def consolidation_context(self, question, val, base):
-        consolidated_contexts = []
-        annee= extract_year_with_context(question)            
-        if "article" in base:
-            art=self.similar_documents(
-                question, val, "article", ["content", "numeros_paragraphe", "time_published", "pub_title", "authors"],
-                COLLECTION_ARTICLE_DEV, (0.4, 0.2, 0.4), NB_ART,annee
-            )
-            list_art=[
-            f"{'content chunk : ' + article['hit']['content']}\n"
-            f"{'numeros du paragraphe: ' + article['hit']['numeros_paragraphe']}\n"
-            f"{'periode du context: ' + article['hit']['time_published']}\n"
-            f"{'titre de larticle: ' + article['hit']['pub_title']}\n"
-            f"{'authors:' + article['hit']['authors']}\n\n"
-            for index, article in enumerate(art)]
-            consolidated_contexts.append({"article":"\n\n".join(list_art)})
-                        
-        if "rapport" in base:
-            rap=self.similar_documents(
-                question, val, "rapport", ["content", "numeros_paragraphe", "dateparution", "titre", "description"],
-                COLLECTION_RAPPORT, (0.5, 0.2, 0.2, 0.1), NB_RAPPORT,annee
-            )
-            list_rap=[
-            f"{'content chunk article: ' + article['hit']['content']}\n"
-            f"{'numeros du chunck: ' + article['hit']['numeros_paragraphe']}\n"
-            f"{'periode du context du rapport: ' + article['hit']['dateparution']}\n"
-            f"{'titre du rapport: ' + article['hit']['titre']}\n"
-            f"{'description:' + article['hit']['description']}\n\n"
-            for index, article in enumerate(rap)]
-            consolidated_contexts.append({"rapport":"\n\n".join(list_rap)})
-            
-
-        if "investir_cameroun" in base:
-            rap = self.similar_documents(
-                question, val, "investir", ["content", "numeros_paragraphe", "pub_title", "authors"],
-                COLLECTION_ARTICLE_INVESTIR, (0.6, 0.4), NB_ART,annee
-            )
-            list_rap = [
-                f"{'contenu: ' + article['hit']['content']}\n"
-                f"{'numéros de paragraphe: ' + article['hit']['numeros_paragraphe']}\n"
-                f"{'titre de la publication: ' + article['hit']['pub_title']}\n"
-                f"{'auteurs: ' + article['hit']['authors']}\n\n"
-                for index, article in enumerate(rap)
-            ]
-            consolidated_contexts.append({"investir_cameroun":"\n\n".join(list_rap)})
-
-       
-        if "indicateur" in base:
-            rap = self.similar_documents(
-                question, val, "indicateur", [
-                    "annee", "pays", "dhIndexRank", "pibUsd", "population", "pibPerHabitationUsd", "externalDebtUsd", 
-                    "inflation", "goodsAndServicesImportUsd", "goodsAndServicesExportUsd","foreignExchangeReserveUsd","currentBalanceLocal",
-                    "exchangeRate","currentBalanceUsd","transparencyIndexRank","ecartIdhRnbHab","monaieLocal"
-                ],
-                COLLECTION_ARTICLE_INDICATEUR, (0.5, 0.5), NB_ART,annee
-            )
-            list_rap = [
-                f"{'année: ' + article['hit']['annee']}\n"
-                f"{'pays: ' + article['hit']['pays']}\n"
-                f"{'classement de lindice DH: ' + article['hit']['dhIndexRank']}\n"
-                f"{'PIB (USD): ' + article['hit']['pibUsd']}\n"
-                f"{'population: ' + article['hit']['population']}\n"
-                f"{'PIB par habitant (USD): ' + article['hit']['pibPerHabitationUsd']}\n"
-                f"{'dette extérieure (USD): ' + article['hit']['externalDebtUsd']}\n"
-                f"{'inflation: ' + article['hit']['inflation']}\n"
-                f"{'importations de biens et services (USD): ' + article['hit']['goodsAndServicesImportUsd']}\n"
-                f"{'exportations de biens et services (USD): ' + article['hit']['goodsAndServicesExportUsd']}\n"
-                f"{'réserve de change (USD): ' + article['hit']['foreignExchangeReserveUsd']}\n"
-                f"{'solde courant local: ' + article['hit']['currentBalanceLocal']}\n"
-                f"{'taux de change: ' + article['hit']['exchangeRate']}\n"
-                f"{'solde courant (USD): ' + article['hit']['currentBalanceUsd']}\n"
-                f"{'classement de lindice de transparence: ' + article['hit']['transparencyIndexRank']}\n"
-                f"{'écart IDH/RNB par habitant: ' + article['hit']['ecartIdhRnbHab']}\n"
-                f"{'monnaie locale: ' + article['hit']['monaieLocal']}\n\n"
-                for index, article in enumerate(rap)
-            ]
-            consolidated_contexts.append({"indicateur":"\n\n".join(list_rap)})
-
-
-
-        if "transaction" in base:
-            rap = self.similar_documents(
-                question, val, "transaction", [
-                    "typeTransaction", "date", "natureTransaction", "secteursTransaction", "description", 
-                    "investisseurs", "beneficiares", "paysInvestisseurs", "paysBeneficiares", "valeurTotal", 
-                    "nombreBeneficaire"
-                ],
-                COLLECTION_ARTICLE_TRANSACTION, (0.4, 0.2, 0.4), NB_ART,annee
-            )
-            list_rap = [
-                f"{'type de transaction: ' + article['hit']['typeTransaction']}\n"
-                f"{'date: ' + article['hit']['date']}\n"
-                f"{'nature de la transaction: ' + article['hit']['natureTransaction']}\n"
-                f"{'secteurs de la transaction: ' + article['hit']['secteursTransaction']}\n"
-                f"{'description: ' + article['hit']['description']}\n"
-                f"{'investisseurs: ' + article['hit']['investisseurs']}\n"
-                f"{'bénéficiaires: ' + article['hit']['beneficiares']}\n"
-                f"{'pays des investisseurs: ' + article['hit']['paysInvestisseurs']}\n"
-                f"{'pays des bénéficiaires: ' + article['hit']['paysBeneficiares']}\n"
-                f"{'valeur totale: ' + article['hit']['valeurTotal']}\n"
-                f"{'nombre de bénéficiaires: ' + article['hit']['nombreBeneficaire']}\n\n"
-                for index, article in enumerate(rap)
-            ]
-            consolidated_contexts.append({"transaction":"\n\n".join(list_rap)})
-            
-        return consolidated_contexts
-    """
-
+ 
     def consolidation_context(self, question, val, base):
         """
         Consolidation et classement des contextes pour différents types de bases de données.
@@ -481,33 +340,16 @@ class MessageService:
 
         ENCODING = tiktoken.get_encoding("cl100k_base")
         
-        template_system = """
-            Réponse  en Français
-            Tu es un assistant IA spécialisé dans la veille économique et financière en Afrique.
-            Tu ne réponds qu'aux questions concernant ce domaine.
-            Tu dois être capable de fournir des analyses financières et économiques.
-            Tu fourniras une réponse précise à des questions sur la base d'un contexte qui t'ai donné.
-            Tu ne donnera point de reponse qui existe pas dans le contexte..
-            Le contexte contient des métadonnées qui te serviront à fournir des réponses avec des sources et une date.
-            Tu répondras poliment si tu ne disposes pas d'assez d'informations pour répondre à la question sur la base du contexte. 
-            Si la question est une salutation, réponds simplement par une salutation et n'utilise en aucun cas le contexte. 
-            Réponds toujours dans la langue utilisée pour la question.
-            Reformule toujours le texte et fournis une réponse structurée et compréhensible.
-            Donne toujours tes sources.
-            
-            """
 
         completion = CLIENT_OPENAI.chat.completions.create(
                         model="gpt-4o",
+                        temperature=0.8,
                         messages=[
-                            {"role": "system", "content": template_system},
+                            {"role": "system", "content": template_system_search},
                             {
                                 "role": "user",
-                                "content": split_string_with_limit(
-                                    f"""Réponds de manière simple et structurée à la question suivante : {question}. 
-                                    Utilise uniquement les informations fournies ci-dessous pour formuler ta réponse : {str(lst_doc)}. 
-                                    Si nécessaire, cite explicitement les parties les plus pertinentes. 
-                                    À la fin, fournis une liste des documents ou rapports les plus pertinents en guise de référence.""",
+                                "content": split_string_with_limit(human_prompt_search(question, lst_doc)
+                                    ,
                                     20000,
                                     ENCODING
                                 )
@@ -519,13 +361,12 @@ class MessageService:
         if db_type== "rapport":
             for result in formatted_results:
                 del result["content"]["Content"]
-                title = result["content"].get("Titre", "N/A")  # Assure-toi que "Titre" est bien le champ correspondant
+                title = result["content"].get("Titre", "N/A")
                 if title not in seen_titles:
                     seen_titles.add(title)
                     unique_results.append(result)
 
             formatted_results = unique_results
 
-                # Trier les résultats par `combined_score` décroissant
         formatted_results.sort(key=lambda x: x["score"], reverse=True)
         return {"insight":resume,"sources":formatted_results}
